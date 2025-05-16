@@ -8,6 +8,7 @@ import time
 from dotenv import load_dotenv, find_dotenv
 import os
 import requests
+import logging
 
 load_dotenv(find_dotenv())
 
@@ -16,7 +17,7 @@ if not API_KEY:
     raise ValueError("API_KEY environment variable not set")
 
 BASE_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/"
-app = FastAPI()
+app = FastAPI(swagger_ui_parameters={"syntaxHighlight": False})
 
 # Connect to Redis
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -47,16 +48,17 @@ class WeatherData(BaseModel):
 # Define a route to get weather data by city
 @app.get("/weather/{city}")
 async def get_weather(city: str):
-    city_query = city.replace("%20", " ").replace("%", " ")
+    # city_query = city.replace("%20", " ").replace("%", " ")
 
     # check redis cache
-    cached = redis_client.get(f"weather:{city_query}")
+    cached = redis_client.get(f"weather:{city}")
     if cached:
+        logging.info("Data found in redis")
         weather_data = json.loads(cached)
         return WeatherData(**weather_data)
     
     # if not found in cache, fetch from external API
-    url = f"{BASE_URL}{city_query}?key={API_KEY}&unitGroup=metric&include=current"
+    url = f"{BASE_URL}{city}?key={API_KEY}&unitGroup=metric&include=current"
     response = requests.get(url)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching weather data")
@@ -78,9 +80,9 @@ async def get_weather(city: str):
 
     # check if the data is stored in redis
     if redis_client.exists(f"weather:{city}"):
-        print("Data stored in redis")
+        logging.info("Data stored in redis")
     else:
-        print("Data not stored in redis")
+        logging.info("Data not stored in redis")
     # return the weather data
     return WeatherData(**weather_data)
 
