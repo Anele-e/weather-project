@@ -28,11 +28,6 @@ REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 redis_client = redis.StrictRedis(host=REDIS_HOST, port=str(REDIS_PORT), db=REDIS_DB, password=REDIS_PASSWORD)
 
 
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# templates = Jinja2Templates(directory="templates")
-
-
 
 # Define a Pydantic model for the weather data
 class WeatherData(BaseModel):
