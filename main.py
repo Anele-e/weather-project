@@ -12,9 +12,6 @@ import logging
 
 load_dotenv(find_dotenv())
 
-API_KEY = os.getenv("API_KEY")
-if not API_KEY:
-    raise ValueError("API_KEY environment variable not set")
 
 BASE_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/"
 app = FastAPI(swagger_ui_parameters={"syntaxHighlight": False})
@@ -44,6 +41,11 @@ class WeatherData(BaseModel):
 @app.get("/weather/{city}")
 async def get_weather(city: str):
     # city_query = city.replace("%20", " ").replace("%", " ")
+
+    # check if API key is set
+    API_KEY = os.getenv("API_KEY")
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="API key not set")
 
     # check redis cache
     cached = redis_client.get(f"weather:{city}")
