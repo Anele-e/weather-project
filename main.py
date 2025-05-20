@@ -62,7 +62,7 @@ async def get_weather(city: str):
     data = response.json()
 
     weather_data = {
-        "id": data.get("id", 0),
+        "id": int(time.time()),  # Generate a unique ID based on the current timestamp
         "city": data.get("address", "Unknown"),
         "country": data.get("resolvedAddress", "Unknown").split(",")[-1].strip(),
         "temperature": data.get("currentConditions", {}).get("temp", 0),
